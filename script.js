@@ -19,13 +19,15 @@ jQuery.fn.explorerTree = function(opts){
 							if (r.error) alert(r.msg);
 							if (r.func){ 
 								try{
-									var f = new Function(r.func);
-									f.apply(null,[elem,r.args]);
+									var f = window[r.func];
+									if (typeof f === 'function')
+										f.apply(null,r.args||[]);
 								}catch(e){
 									alert(e);
 								}
+							}else if (r.msg){
+								alert(r.msg);
 							}
-							console.log(r);
 						}
 					);
 						
@@ -35,7 +37,6 @@ jQuery.fn.explorerTree = function(opts){
 			return true;
 		}
 		var foldinghandler = function(e){
-	//		var id = $(this).data('itemid');
 			if (!$(e.target).is($('>.li',this)) && !$(e.target).is($('>.li>a',this))) return true;
 			if ($(this).hasClass('open')){$(this).removeClass('open loading').addClass('closed'); return false;}
 			$(this).removeClass('closed').addClass('open');
@@ -55,7 +56,6 @@ jQuery.fn.explorerTree = function(opts){
 		}
 		$(this).on('click','.li>a',setselected);
 		$(this).on('click','.explorertree_folder',foldinghandler);
-		//		if (opts.onselect) $(this).find('.explorer_tree_branch explorer_tree_leaf').on('select',onselect);
 	});
 	
 }
