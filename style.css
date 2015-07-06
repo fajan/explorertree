@@ -1,0 +1,42 @@
+
+
+ul.explorertree{
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+.explorertree_root{
+  font-size: 90%;
+  width: 25%;
+  min-height: 300px;
+  max-height: 800px;
+  float: left;
+  overflow: auto;
+  border: 1px solid #ccc;
+  text-align: left;
+}
+
+.explorertree_folder > .li > a:before{
+	content: "";
+	display: inline-block;
+	width: 9px; height: 9px;
+	margin-right: 5px;
+}
+.explorertree_folder.open> .li > a:before{
+	background: url('../../images/minus.gif');
+}
+.explorertree_folder.closed> .li > a:before{
+	background: url('../../images/plus.gif');
+}
+.explorertree_folder.closed> ul.explorertree{
+	display: none;
+}
+.explorertree_folder.open.loading> .li:after{
+	content: "Loading...";
+	margin-left: 10px;
+	display: block;
+}
+
+.explorertree_selected{
+	font-weight: bold;
+}
