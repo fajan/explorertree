@@ -14,6 +14,8 @@ class helper_plugin_explorertree extends DokuWiki_Plugin {
 		'callbacks' =>array(
 			'page_selected_cb' => null,
 			'ns_selected_cb' => null,
+			'page_selected_js' => null,
+			'ns_selected_js' => null,
 		),
 		'vars'=>array(
 			'id'=> null,
@@ -67,15 +69,7 @@ class helper_plugin_explorertree extends DokuWiki_Plugin {
                 );
         $result[] = array(
                 'name'   => 'htmlExplorer',
-                'desc'   => 'gets html explorer of the whole wiki (non-registered)',
-				'parameters' => array(
-					'base' => 'string ID of the root node',
-					),
-				'return' => array('tree'=>'array'),
-                );
-        $result[] = array(
-                'name'   => 'htmlExplorerP',
-                'desc'   => 'gets html explorer of the whole wiki (registered).',
+                'desc'   => 'gets html explorer of the whole wiki.',
 				'parameters' => array(
 					'name' => 'string unique name of a callback/data store.',
 					'base' => 'string ID of the root node',
@@ -119,8 +113,6 @@ class helper_plugin_explorertree extends DokuWiki_Plugin {
 		$dir = strtr(cleanID($folder),':','/');
 		if (!($this->cache() && is_array($data = $this->cache()->get('explorertree_cache_'.$dir)))){
 			$data = array();
-//			echo "/* '$ofolder' , '$folder' ,'$dir' */\n";
-			//search(&$data,$base,$func,$opts,$dir='',$lvl=1,$sort='natural')   X-Ref
 			search($data,$conf['datadir'],'search_index',array('ns'=>getNS($ID)),$dir,$dir == '' ? 1 : count(explode('/',$dir))+1);
 			$count = count($data);
 			if($count>0) for($i=1; $i<$count; $i++){
@@ -129,32 +121,18 @@ class helper_plugin_explorertree extends DokuWiki_Plugin {
 					$i++;  // duplicate found, next $i can't be a duplicate, so skip forward one
 				}
 			}
-			if ($this->cache()) {	// store to cache, if there is caching
-/*		// removed due to the fact: a plugin can register to change in the tree (ns/page create/delete) but it will only be called, when the plugin is loaded. Hence: if a plugin is not loaded, it can not invalidate cache...
-
-
-				//first update the list of cached folders 
-				if (!is_array($allcached = $this->cache()->get('explorertree_cachelist'))) {
-					$allcached = array();	// or create a list if not exists yet
-				}
-				$allcached[$cache_id] = true;	// add current key to list of cached folders, and store it
-				$this->cache()->set('explorertree_cachelist',$allcached);
-*/
+			if ($this->cache()) {
 				$this->cache()->set($cache_id = 'explorertree_cache_'.$dir,$data,60);	// store the data itself (cache for one minute)
 			}
 		}
         return $data;
     }
 
-    function htmlExplorer($base =''){
-		return $this->htmlExplorer(null,$base);
-	}
-
     /**
      * Display a tree menu to select a page or namespace
      *
      */
-    function htmlExplorerP($name,$base = ''){
+    function htmlExplorer($name,$base = ''){
         global $lang;
 		if ($base == '' || $base == '*') $base = ':';
         if (!($o = $this->loadRoute($name))){
@@ -175,11 +153,11 @@ class helper_plugin_explorertree extends DokuWiki_Plugin {
 			$list = "<ul class='{$class}' >".$list."</ul>";
 		}
 		if (!($id = $o['vars']['id'])){
-			$id = "explorer_tree_{$name}";
+			$id = "explorertree_{$name}";
 		}
         if ($base == ':'){
 			return "<div class='{$class}_root' id='{$id}'>".$list."</div>"
-			."<script type='text/javascript'>jQuery('#{$id}').explorerTree(".$this->_treeOpts($name).");</script>";
+			."<script type='text/javascript'>jQuery(document).ready(function(){jQuery('#{$id}').explorerTree(".$this->_treeOpts($name).")});</script>";
 		}
 		return $list;
 
@@ -189,12 +167,23 @@ class helper_plugin_explorertree extends DokuWiki_Plugin {
 		$opts = $this->loadRoute($name);
 		$o = array(
 			'route' => $name,
+			'classname' => $opts['vars']['class'],
 			'loader' => $opts['init_plugin'],
 			'onselectpage' => (bool)$opts['callbacks']['page_selected_cb'],
 			'onselectns' => (bool)$opts['callbacks']['ns_selected_cb'],
+			'onselectnsjs' => null,
+			'onselectpagejs' => null,
 			'token' => getSecurityToken(),
 		);
-		return json_encode($o);
+		$json = json_encode($o);
+		$json = preg_replace_callback('~("onselect(ns|page)js"\s*:\s*)null\s*,~',function($m) use ($opts){
+			if (is_string($x = $opts['callbacks'][$m[2].'_selected_js']) && strlen($x) > 0){
+				return $m[1].$x.'||null,';
+			}
+			return $m[0];
+		},$json);
+		return $json;
+		
 	}
 	
 
@@ -238,7 +227,7 @@ class helper_plugin_explorertree extends DokuWiki_Plugin {
 
 
     function _html_li_tree($item){
-        return '<li class="level' . $item['level'] . ' ' .($item["type"] == 'd' ? 'explorertree_folder ':' ').
+        return '<li class="level' . $item['level'] . ' ' .($item["type"] == 'd' ? 'folder ':' ').
                ($item['open'] ? 'open' : 'closed') . '" data-itemid="'.$item["id"].'">';
     }
 

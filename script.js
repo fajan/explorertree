@@ -1,17 +1,18 @@
 jQuery.fn.explorerTree = function(opts){
 	var $ = jQuery;
 	$(this).each(function(){
-		var tree_opts = $.extend({onselect:null},opts||{}), $tree_root = $(this), tree_selected = ':';
+		var tree_opts = $.extend({onselect:null},opts||{}), $tree_root = $(this), tree_selected = ':', selected_class = tree_opts.classname+"_selecter";
 		var setselected = function(e){
 			if ($(this).data('itemid') != tree_selected){
 				var $elem = $(this),
-					is_ns = $elem.is('.explorertree_folder>.li>a'),
-				    call = (is_ns && tree_opts.onselectns) ||  (!is_ns && tree_opts.onselectpage);
-				$tree_root.find('.explorertree_selected').removeClass('explorertree_selected');
-				$elem.addClass('explorertree_selected');
+					is_ns = $elem.is('.folder>.li>a'),
+				    ajax_call = (is_ns && tree_opts.onselectns === true) ||  (!is_ns && tree_opts.onselectpage === true),
+				    function_call = (is_ns && typeof tree_opts.onselectnsjs === 'function' ? tree_opts.onselectnsjs : undefined) ||  (!is_ns && typeof tree_opts.onselectpagejs === 'function' ? tree_opts.onselectpagejs : undefined) || null;
+				$tree_root.find('.'+selected_class).removeClass(selected_class);
+				$elem.addClass(selected_class);
 				tree_selected = $elem.data('itemid');
 				
-				if (call){
+				if (ajax_call){
 					$.post(DOKU_BASE + 'lib/exe/ajax.php',
 						{ call:'plugin_explorertree', operation: 'callback', event: is_ns ? 'ns_selected_cb':'page_selected_cb', loader: tree_opts.loader, route: tree_opts.route, sectok: tree_opts.token,itemid:$elem.data('itemid') },
 						function(r){
@@ -30,32 +31,41 @@ jQuery.fn.explorerTree = function(opts){
 							}
 						}
 					);
-						
 				}
-				
+				if (function_call){
+					function_call.apply(null,[$elem.data('itemid'),$elem,$tree_root]);
+				}
+				$tree_root.trigger('tree_selected tree_selected_'+(is_ns?'ns':'page'),[$elem.data('itemid'),$elem,$tree_root]);
 			}
 			return true;
 		}
 		var foldinghandler = function(e){
 			if (!$(e.target).is($('>.li',this)) && !$(e.target).is($('>.li>a',this))) return true;
-			if ($(this).hasClass('open')){$(this).removeClass('open loading').addClass('closed'); return false;}
+			var $elem = $(this);
+			if ($(this).hasClass('open')){
+				$(this).removeClass('open loading').addClass('closed'); return false;
+				$tree_root.trigger('tree_folder_closed',[$elem.data('itemid'),$elem,$tree_root]);
+			}
 			$(this).removeClass('closed').addClass('open');
-			if (!$(this).has('>ul.explorertree').length){
-				var container = this;
+			$tree_root.trigger('tree_folder_open',[$elem.data('itemid'),$elem,$tree_root]);
+			if (!$elem.has('>ul.'+tree_opts.classname).length){
 				$(this).addClass('loading');
 				$.post(DOKU_BASE + 'lib/exe/ajax.php',
-					{call: 'plugin_explorertree',operation:'explorertree_branch',itemid:$(this).data('itemid'),'env':opts.env, sectok: tree_opts.token},
+					{call: 'plugin_explorertree',operation:'explorertree_branch',itemid:$elem.data('itemid'),'env':opts.env, sectok: tree_opts.token},
 					function(r){
 						if (r.token) tree_opts.token = r.token;
 						if (r.error) {alert(r.msg); return;}
-						$(container).append(r.html).removeClass('loading');
+						$elem.append(r.html).removeClass('loading');
+						$tree_root.trigger('tree_folder_open_ready',[$elem.data('itemid'),$elem,$tree_root]);
 					}
 				);
+			}else{
+				$tree_root.trigger('tree_folder_open_ready',[$elem.data('itemid'),$elem,$tree_root]);
 			}
 			return false;
 		}
 		$(this).on('click','.li>a',setselected);
-		$(this).on('click','.explorertree_folder',foldinghandler);
+		$(this).on('click','.folder',foldinghandler);
 	});
 	
 }
