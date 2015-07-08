@@ -31,15 +31,6 @@ class helper_plugin_explorertree extends DokuWiki_Plugin {
 		return $this->memcahce;
 	}
 	
-    /**
-     * Constructor gets default preferences
-     *
-     * These can be overriden by plugins using this class
-     */
-    function __construct() {
-		$this->options['callbacks']['tree_html_list_cb'] = array($this,'_html_list_tree');
-		$this->options['callbacks']['tree_html_li_cb'] = array($this,'_html_li_tree');
-	}
 	
     function getMethods() {
         $result = array();
