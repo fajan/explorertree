@@ -38,7 +38,10 @@ class action_plugin_explorertree extends DokuWiki_Action_Plugin {
 					$data = array('error'=>true,'msg'=>"Can't load tree helper.");
 					break;
 				}
-				$data = array('html' => $helper->htmlExplorer($INPUT->str('env'),ltrim(':'.$INPUT->str('itemid')),':') );
+				if (!($route = $helper->loadRoute($INPUT->str('route'),$INPUT->arr('loader')))){
+					$data = array('error'=>true,'msg'=>"Can't load route '".$INPUT->str('route')."'!");
+				}
+				$data = array('html' => $helper->htmlExplorer($INPUT->str('route'),ltrim(':'.$INPUT->str('itemid')),':') );
 				if (!$data['html']) {$data['error'] = true; $data['msg'] = "Can't load tree html.";}
 				break;
 			case 'callback':

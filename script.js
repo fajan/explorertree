@@ -51,7 +51,7 @@ jQuery.fn.explorerTree = function(opts){
 			if (!$elem.has('>ul.'+tree_opts.classname).length){
 				$(this).addClass('loading');
 				$.post(DOKU_BASE + 'lib/exe/ajax.php',
-					{call: 'plugin_explorertree',operation:'explorertree_branch',itemid:$elem.data('itemid'),'env':opts.env, sectok: tree_opts.token},
+					{call: 'plugin_explorertree',operation:'explorertree_branch',itemid:$elem.data('itemid'), loader: tree_opts.loader, route: tree_opts.route, sectok: tree_opts.token},
 					function(r){
 						if (r.token) tree_opts.token = r.token;
 						if (r.error) {alert(r.msg); return;}
