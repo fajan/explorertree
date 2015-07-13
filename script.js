@@ -1,8 +1,8 @@
 jQuery.fn.explorerTree = function(opts){
 	var $ = jQuery;
 	$(this).each(function(){
-		var tree_opts = $.extend({onselect:null},opts||{}), $tree_root = $(this), tree_selected = ':', selected_class = tree_opts.classname+"_selecter";
-		var setselected = function(e){
+		var tree_opts = $.extend({onselect:null},opts||{}), $tree_root = $(this), tree_selected = ':', selected_class = tree_opts.classname+"_selecter", dbcl = {id: null, TO: null, act: false};
+		var setselected = function(){
 			if ($(this).data('itemid') != tree_selected){
 				var $elem = $(this),
 					is_ns = $elem.is('.folder>.li>a'),
@@ -39,6 +39,21 @@ jQuery.fn.explorerTree = function(opts){
 			}
 			return true;
 		}
+		var setselectednodblclick = function(e){
+			var id = $(this).data('itemid'), $elem = this;
+			if (dbcl.item != id || (dbcl.id == id && dbcl.act)){
+				clearTimeout(dbcl.TO);
+				dbcl.act = false;
+			}
+			dbcl.id = id;
+			dbcl.act = true;
+			dbcl.TO = setTimeout(function(){
+				dbcl.act = false;
+				setselected.call($elem);	// on singleclick
+				
+			},300); // 0.3 seconds for dblclick is quite relaxed.
+		}
+
 		var foldinghandler = function(e){
 			if (!$(e.target).is($('>.li',this)) && !$(e.target).is($('>.li>a',this))) return true;
 			var $elem = $(this);
@@ -64,8 +79,8 @@ jQuery.fn.explorerTree = function(opts){
 			}
 			return false;
 		}
-		$(this).on('click','.li>a',setselected);
-		$(this).on('click','.folder',foldinghandler);
+		$(this).on('click','.li>a',setselectednodblclick);
+		$(this).on('dblclick','.folder',foldinghandler);
 	});
 	
 }
