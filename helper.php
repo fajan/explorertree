@@ -26,6 +26,7 @@ class helper_plugin_explorertree extends DokuWiki_Plugin {
 
 	function cache(){
 		if ($this->memcache === false){
+			// we will use memcache even it's emulated, as we building a tree requires to search filesystem (multiple fs I/O) and emulated cache only graps one compressed wile from disk (one optimized fs I/O)
 			$this->memcache = plugin_load('helper','memcache');
 		}
 		return $this->memcahce;

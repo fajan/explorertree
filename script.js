@@ -11,7 +11,7 @@ jQuery.fn.explorerTree = function(opts){
 				$tree_root.find('.'+selected_class).removeClass(selected_class);
 				$elem.addClass(selected_class);
 				tree_selected = $elem.data('itemid');
-				
+				$tree_root.trigger('tree_selected',[$elem.data('itemid'),$elem,$tree_root]);
 				if (ajax_call){
 					$.post(DOKU_BASE + 'lib/exe/ajax.php',
 						{ call:'plugin_explorertree', operation: 'callback', event: is_ns ? 'ns_selected_cb':'page_selected_cb', loader: tree_opts.loader, route: tree_opts.route, sectok: tree_opts.token,itemid:$elem.data('itemid') },
@@ -35,7 +35,7 @@ jQuery.fn.explorerTree = function(opts){
 				if (function_call){
 					function_call.apply(null,[$elem.data('itemid'),$elem,$tree_root]);
 				}
-				$tree_root.trigger('tree_selected tree_selected_'+(is_ns?'ns':'page'),[$elem.data('itemid'),$elem,$tree_root]);
+				$tree_root.trigger('tree_selected_'+(is_ns?'ns':'page'),[$elem.data('itemid'),$elem,$tree_root]);
 			}
 			return true;
 		}
