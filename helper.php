@@ -55,7 +55,7 @@ class helper_plugin_explorertree extends DokuWiki_Plugin {
                 'name'   => 'getTree',
                 'desc'   => 'gets the tree of NS and pages ',
 				'parameters' => array(
-					'folder' => 'string an already converted filesystem folder of the current namespace',
+					'folder' => 'string a folder of the current namespace',
 					),
 				'return' => array('tree'=>'array'),
                 );
@@ -65,6 +65,7 @@ class helper_plugin_explorertree extends DokuWiki_Plugin {
 				'parameters' => array(
 					'name' => 'string unique name of a callback/data store.',
 					'base' => 'string ID of the root node',
+					'current' => 'string ID of the current node',
 					),
 				'return' => array('tree'=>'array'),
                 );
@@ -91,7 +92,7 @@ class helper_plugin_explorertree extends DokuWiki_Plugin {
 	
 
     /**
-     * get a combined list of media and page files
+     * get a list of namespace / page files
      *
      * @param string $folder an already converted filesystem folder of the current namespace
      */
@@ -124,7 +125,7 @@ class helper_plugin_explorertree extends DokuWiki_Plugin {
      * Display a tree menu to select a page or namespace
      *
      */
-    function htmlExplorer($name,$base = ''){
+    function htmlExplorer($name,$base = '',$current = null){
         global $lang;
 		if ($base == '' || $base == '*') $base = ':';
         if (!($o = $this->loadRoute($name))){
@@ -149,18 +150,19 @@ class helper_plugin_explorertree extends DokuWiki_Plugin {
 		}
         if ($base == ':'){
 			return "<div class='{$class}_root' id='{$id}'>".$list."</div>"
-			."<script type='text/javascript'>jQuery(document).ready(function(){jQuery('#{$id}').explorerTree(".$this->_treeOpts($name).")});</script>";
+			."<script type='text/javascript'>jQuery(document).ready(function(){jQuery('#{$id}').explorerTree(".$this->_treeOpts($name,$current === null ? $base : $current).")});</script>";
 		}
 		return $list;
 
     }
 	
-	function _treeOpts($name){
+	function _treeOpts($name,$current){
 		$opts = $this->loadRoute($name);
 		$o = array(
 			'route' => $name,
 			'classname' => $opts['vars']['class'],
 			'loader' => $opts['init_plugin'],
+			'current' => ':'.ltrim(strtr($current,'/',':'),':'),
 			'onselectpage' => (bool)$opts['callbacks']['page_selected_cb'],
 			'onselectns' => (bool)$opts['callbacks']['ns_selected_cb'],
 			'onselectnsjs' => null,

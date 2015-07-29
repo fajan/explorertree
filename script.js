@@ -1,7 +1,7 @@
 jQuery.fn.explorerTree = function(opts){
 	var $ = jQuery;
 	$(this).each(function(){
-		var tree_opts = $.extend({onselect:null},opts||{}), $tree_root = $(this), tree_selected = ':', selected_class = tree_opts.classname+"_selecter", dbcl = {id: null, TO: null, clicks: 0};
+		var tree_opts = $.extend({onselect:null},opts||{}), $tree_root = $(this), tree_selected = opts.current||':', selected_class = tree_opts.classname+"_selecter", dbcl = {id: null, TO: null, clicks: 0};
 		var setselected = function(){
 			if ($(this).data('itemid') != tree_selected){
 				var $elem = $(this),
