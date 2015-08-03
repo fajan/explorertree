@@ -1,8 +1,8 @@
 jQuery.fn.explorerTree = function(opts){
 	var $ = jQuery;
 	$(this).each(function(){
-		var tree_opts = $.extend({onselect:null},opts||{}), $tree_root = $(this), tree_selected = opts.current||':', selected_class = tree_opts.classname+"_selecter", dbcl = {id: null, TO: null, clicks: 0};
-		var setselected = function(){
+		var tree_opts = $.extend({onselect:null},opts||{}), $tree_root = $(this), tree_selected = opts.current||':', selected_class = tree_opts.classname+"_selecter", dbcl = {id: null, TO: null, clicks: 0},
+		setselected = function(){
 			if ($(this).data('itemid') != tree_selected){
 				var $elem = $(this),
 					is_ns = $elem.is('.folder>.li>a'),
@@ -38,8 +38,8 @@ jQuery.fn.explorerTree = function(opts){
 				$tree_root.trigger('tree_selected_'+(is_ns?'ns':'page'),[$elem.data('itemid'),$elem,$tree_root]);
 			}
 			return true;
-		}
-		var setselectednodblclick = function(e){
+		},
+		setselectednodblclick = function(e){
 			var id = $(this).data('itemid'), $elem = this;
 			if (dbcl.id != id){	
 				dbcl.clicks = 0;
@@ -62,9 +62,8 @@ jQuery.fn.explorerTree = function(opts){
 				clearTimeout(dbcl.TO);
 				dbcl.clicks = 0;
 			}
-		}
-
-		var foldinghandler = function(e){
+		},
+		foldinghandler = function(e){
 			if (!$(e.target).is($('>.li',this)) && !$(e.target).is($('>.li>a',this))) return true;
 			var $elem = $(this);
 			if ($(this).hasClass('open')){
@@ -88,10 +87,10 @@ jQuery.fn.explorerTree = function(opts){
 				$tree_root.trigger('tree_folder_open_ready',[$elem.data('itemid'),$elem,$tree_root]);
 			}
 			return false;
-		}
+		};
 		$(this).on('click','.li>a',setselectednodblclick);
 		$(this).on('dblclick','.folder',foldinghandler);
 	});
 	
-}
+};
 
